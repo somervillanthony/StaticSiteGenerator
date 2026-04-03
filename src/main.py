@@ -1,10 +1,18 @@
 import os
 import shutil
+import sys
 from inline_markdown import markdown_to_html_node
 
 def main():
-     public_creator("static", "public")
-     generate_pages_recursive("content", "template.html", "public")
+     if len(sys.argv) > 1:
+          basepath = sys.argv[1]
+     else:
+          basepath = ""
+     source = os.path.join(basepath, "static")
+     dest = os.path.join(basepath, "docs")
+     public_creator(source, dest)
+     content = os.path.join(basepath, "content")
+     generate_pages_recursive(content, "template.html", dest, basepath)
 
 
 def public_creator(source, destination):
@@ -36,7 +44,7 @@ def extract_title(markdown):
           return heading_string
      raise Exception("improper markdown syntax for a h1 heading")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
      print(f"Generating page from {from_path} to {dest_path} using {template_path}")
      markdown = open(from_path, "r").read()
      template = open(template_path, "r").read()
@@ -48,22 +56,22 @@ def generate_page(from_path, template_path, dest_path):
      title = extract_title(markdown_lines[0])
 
      html_page = template.replace("{{ Title }}", title).replace("{{ Content }}", html_string)
+     html_page = html_page.replace('href="/', f'href="{basepath}').replace('src="/', f'src="{basepath}')
      directories = os.path.dirname(dest_path)
      os.makedirs(directories, exist_ok=True)
-     print(dest_path)
      f = open(dest_path, "w")
      f.write(html_page)
      f.close()
   
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
      dir_list = os.listdir(dir_path_content)
      for item in dir_list:
           item_path = os.path.join(dir_path_content, item)
           if not os.path.isfile(item_path):
                new_dest_path = os.path.join(dest_dir_path, item)
-               generate_pages_recursive(item_path, template_path, new_dest_path)
+               generate_pages_recursive(item_path, template_path, new_dest_path, basepath)
           elif item == "index.md":
                new_dest_path = os.path.join(dest_dir_path, "index.html")
-               generate_page(item_path, template_path, new_dest_path)
+               generate_page(item_path, template_path, new_dest_path, basepath)
 
 main()
