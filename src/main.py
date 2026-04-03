@@ -7,12 +7,9 @@ def main():
      if len(sys.argv) > 1:
           basepath = sys.argv[1]
      else:
-          basepath = ""
-     source = os.path.join(basepath, "static")
-     dest = os.path.join(basepath, "docs")
-     public_creator(source, dest)
-     content = os.path.join(basepath, "content")
-     generate_pages_recursive(content, "template.html", dest, basepath)
+          basepath = "/"
+     public_creator("static", "docs")
+     generate_pages_recursive("content", "template.html", "docs", basepath)
 
 
 def public_creator(source, destination):
